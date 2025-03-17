@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wishlist Ara dan Ido</title>
+    <!-- Add favicon to prevent 404 errors -->
+    <link rel="icon" href="data:,">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <style>
+        :root {
+            --primary-color: #FF99C8;
+            --text-color: #695C5C;
+            --background-color: #FFF5F7;
+            --card-color: #ffffff;
+            --border-color: #FFB3C6;
+            --secondary-color: #FCB6D0;
+            --ara-color: #FF6B98;
+            --ido-color: #5D9CEC;
+            --success-color: #4CAF50;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, #FFE5EC, #FFB3C6);
+            border-radius: 15px;
+        }
+
+        .header h1 {
+            color: #FF4F81;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #FF6B98;
+            font-size: 1.2rem;
+        }
+
+        .header h1:before,
+        .header h1:after {
+            content: '♥';
+            color: #FF4F81;
+            margin: 0 10px;
+        }
+
+        .card {
+            background: var(--card-color);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(255, 153, 200, 0.2);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+        }
+
+        .btn-ara {
+            background-color: var(--ara-color);
+        }
+
+        .btn-ido {
+            background-color: var(--ido-color);
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 0.75rem;
+            text-align: center;
+            background-color: #FFE5EC;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .wishlist-item {
+            background: #FFF5F7;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .wishlist-item.ara {
+            border-left: 4px solid var(--ara-color);
+        }
+
+        .wishlist-item.ido {
+            border-left: 4px solid var(--ido-color);
+        }
+
+        .wishlist-item.completed {
+            border-left: 4px solid var(--success-color);
+        }
+
+        .wishlist-item h3 {
+            margin-bottom: 0.5rem;
+            color: #FF4F81;
+        }
+
+        .wishlist-item p {
+            margin-bottom: 0.5rem;
+            color: #695C5C;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .item-actions button {
+            flex: 1;
+            padding: 0.5rem;
+        }
+
+        .loader {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .user-selector {
+            display: flex;
+            margin-bottom: 1.5rem;
+        }
+
+        .user-btn {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .user-btn.ara {
+            background-color: var(--ara-color);
+            color: white;
+            border-radius: 10px 0 0 10px;
+        }
+
+        .user-btn.ido {
+            background-color: var(--ido-color);
+            color: white;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .user-btn.active {
+            opacity: 1;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        .user-btn:not(.active) {
+            opacity: 0.7;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+        }
+
+        .badge.ara {
+            background-color: var(--ara-color);
+            color: white;
+        }
+
+        .badge.ido {
+            background-color: var(--ido-color);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem auto;
+            }
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Wishlist Ara dan Ido</h1>
+            <p>Daftar Keinginan & Harapan Kita</p>
+        </div>
+
+        <div class="card">
+            <div class="user-selector">
+                <button class="user-btn ara active" id="araBtn" onclick="switchUser('ara')">ARA</button>
+                <button class="user-btn ido" id="idoBtn" onclick="switchUser('ido')">IDO</button>
+            </div>
+
+            <p id="currentUserDisplay" style="text-align: center; margin-bottom: 1rem;">
+                Hai, <b>Ara</b>! Tambahkan atau lihat wishlist kamu di sini.
+            </p>
+
+            <div class="tabs">
+                <div class="tab active" id="viewTab" onclick="showSection('view')">Lihat Wishlist</div>
+                <div class="tab" id="addTab" onclick="showSection('add')">Tambah Baru</div>
+            </div>
+
+            <div id="viewSection">
+                <div class="tabs">
+                    <div class="tab active" id="allTab" onclick="filterWishlist('all')">Semua</div>
+                    <div class="tab" id="pendingTab" onclick="filterWishlist('pending')">Menunggu</div>
+                    <div class="tab" id="completedTab" onclick="filterWishlist('completed')">Selesai</div>
+                </div>
+                <div id="wishlistItems">
+                    <div class="loader">Memuat wishlist...</div>
+                </div>
+            </div>
+
+            <div id="addSection" style="display: none;">
+                <input type="text" id="wishText" class="form-control" placeholder="Apa keinginanmu?">
+                <textarea id="wishDescription" class="form-control" placeholder="Deskripsi (opsional)"></textarea>
+                <button onclick="addWish()" class="btn btn-primary">Tambah Keinginan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Error handler global
+        window.onerror = function(message, source, line, column, error) {
+            console.error("Error terdeteksi:", message);
+            console.error("Sumber:", source);
+            console.error("Baris:", line);
+            console.error("Kolom:", column);
+            console.error("Objek error:", error);
+            alert("Error terdeteksi: " + message + " pada baris " + line);
+            return true;
+        };
+
+        // Konfigurasi Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLPp1SArD56_WnYT0hZMg6SVGIBd9kM9c",
+            authDomain: "html-51404.firebaseapp.com",
+            databaseURL: "https://html-51404-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "html-51404",
+            storageBucket: "html-51404.firebasestorage.app",
+            messagingSenderId: "346577920082",
+            appId: "1:346577920082:web:3f51a175ff28047a17ff8b",
+            measurementId: "G-8CX5TQSB42"
+        };
+        
+        // Inisialisasi Firebase
+        console.log("Mencoba inisialisasi Firebase");
+        try {
+            firebase.initializeApp(firebaseConfig);
+            console.log("Firebase diinisialisasi:", firebase);
+            
+            const database = firebase.database();
+            console.log("Referensi database dibuat:", database);
+            
+            // Variabel global
+            let currentUser = 'ara'; // Default user adalah Ara
+            let currentFilter = 'all';
+            let wishes = [];
+            let araWishesRef = database.ref('wishes/ara');
+            let idoWishesRef = database.ref('wishes/ido');
+            
+            // Fungsi untuk mengubah pengguna
+            function switchUser(user) {
+                currentUser = user;
+                
+                // Update tampilan tombol pengguna
+                document.getElementById('araBtn').classList.remove('active');
+                document.getElementById('idoBtn').classList.remove('active');
+                document.getElementById(user + 'Btn').classList.add('active');
+                
+                // Update pesan selamat datang
+                const displayName = user === 'ara' ? 'Ara' : 'Ido';
+                document.getElementById('currentUserDisplay').innerHTML = 
+                    `Hai, <b>${displayName}</b>! Tambahkan atau lihat wishlist kamu di sini.`;
+                
+                // Muat ulang tampilan wishlist
+                loadWishes();
+            }
+
+            // Fungsi untuk menampilkan section yang berbeda
+            function showSection(section) {
+                console.log("Menampilkan section:", section);
+                document.querySelectorAll('.tabs .tab').forEach(tab => {
+                    if (tab.id === 'viewTab' || tab.id === 'addTab') {
+                        tab.classList.remove('active');
+                    }
+                });
+                
+                if (section === 'view') {
+                    document.getElementById('viewTab').classList.add('active');
+                    document.getElementById('viewSection').style.display = 'block';
+                    document.getElementById('addSection').style.display = 'none';
+                } else if (section === 'add') {
+                    document.getElementById('addTab').classList.add('active');
+                    document.getElementById('viewSection').style.display = 'none';
+                    document.getElementById('addSection').style.display = 'block';
+                }
+            }
+
+            // Filter wishlist berdasarkan status (completed/pending)
+            function filterWishlist(filter) {
+                console.log("Memfilter wishlist:", filter);
+                currentFilter = filter;
+                
+                document.querySelectorAll('#viewSection .tabs .tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                document.getElementById(filter + 'Tab').classList.add('active');
+                displayWishes();
+            }
+
+            // Memuat wishlist dari Firebase
+            function loadWishes() {
+                console.log("Memulai loadWishes()");
+                
+                // Reset wishes array
+                wishes = [];
+                
+                // Tampilkan loading
+                document.getElementById('wishlistItems').innerHTML = 
+                    '<div class="loader">Memuat wishlist...</div>';
+                
+                // Load wishes dari ara dan ido
+                Promise.all([
+                    // Get Ara's wishes
+                    new Promise((resolve) => {
+                        araWishesRef.once('value', (snapshot) => {
+                            if (snapshot.exists()) {
+                                snapshot.forEach((childSnapshot) => {
+                                    const wish = childSnapshot.val();
+                                    wish.id = childSnapshot.key;
+                                    wish.owner = 'ara';
+                                    wishes.push(wish);
+                                });
+                            }
+                            resolve();
+                        });
+                    }),
+                    // Get Ido's wishes
+                    new Promise((resolve) => {
+                        idoWishesRef.once('value', (snapshot) => {
+                            if (snapshot.exists()) {
+                                snapshotsnapshot.forEach((childSnapshot) => {
+                                    const wish = childSnapshot.val();
+                                    wish.id = childSnapshot.key;
+                                    wish.owner = 'ido';
+                                    wishes.push(wish);
+                                });
+                            }
+                            resolve();
+                        });
+                    })
+                ]).then(() => {
+                    console.log("Semua data wishlist dimuat:", wishes);
+                    
+                    // Sort wishes by date (newest first)
+                    wishes.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    
+                    // Display wishes
+                    displayWishes();
+                }).catch((error) => {
+                    console.error("Error loading wishes:", error);
+                    document.getElementById('wishlistItems').innerHTML = 
+                        '<p>Error memuat wishlist: ' + error.message + '</p>';
+                });
+            }
+
+            // Menambahkan wish baru
+            function addWish() {
+                const text = document.getElementById('wishText').value.trim();
+                const description = document.getElementById('wishDescription').value.trim();
+                
+                console.log(`Menambahkan wish untuk ${currentUser}:`, text);
+                
+                if (text) {
+                    const wish = {
+                        text: text,
+                        description: description,
+                        completed: false,
+                        date: new Date().toISOString(),
+                        owner: currentUser
+                    };
+                    
+                    const wishesRef = currentUser === 'ara' ? araWishesRef : idoWishesRef;
+                    
+                    wishesRef.push(wish)
+                        .then(() => {
+                            console.log("Wishlist berhasil ditambahkan!");
+                            // Clear inputs
+                            document.getElementById('wishText').value = '';
+                            document.getElementById('wishDescription').value = '';
+                            
+                            // Show success message
+                            alert('Keinginan berhasil ditambahkan!');
+                            
+                            // Switch to view section and reload wishes
+                            showSection('view');
+                            loadWishes();
+                        })
+                        .catch((error) => {
+                            console.error("Error menambahkan wish:", error);
+                            alert('Error menambahkan keinginan: ' + error.message);
+                        });
+                } else {
+                    alert("Silakan masukkan keinginan Anda");
+                }
+            }
+
+            // Toggle status wish (completed/pending)
+            function toggleWish(id, owner) {
+                console.log(`Toggle wish ${id} dari ${owner}`);
+                const wish = wishes.find(w => w.id === id && w.owner === owner);
+                
+                if (wish) {
+                    const updates = {
+                        completed: !wish.completed,
+                        completedBy: !wish.completed ? currentUser : null,
+                        completedDate: !wish.completed ? new Date().toISOString() : null
+                    };
+                    
+                    const wishesRef = owner === 'ara' ? araWishesRef : idoWishesRef;
+                    
+                    wishesRef.child(id).update(updates)
+                        .then(() => {
+                            console.log("Status wish diperbarui");
+                            loadWishes(); // Reload wishes to reflect changes
+                        })
+                        .catch(error => {
+                            console.error("Error memperbarui wish:", error);
+                            alert('Error memperbarui status: ' + error.message);
+                        });
+                }
+            }
+
+            // Hapus wish
+            function deleteWish(id, owner) {
+                if (confirm('Apakah Anda yakin ingin menghapus keinginan ini?')) {
+                    console.log(`Menghapus wish ${id} dari ${owner}`);
+                    
+                    const wishesRef = owner === 'ara' ? araWishesRef : idoWishesRef;
+                    
+                    wishesRef.child(id).remove()
+                        .then(() => {
+                            console.log("Wish berhasil dihapus");
+                            loadWishes(); // Reload wishes to reflect changes
+                        })
+                        .catch(error => {
+                            console.error("Error menghapus wish:", error);
+                            alert('Error menghapus keinginan: ' + error.message);
+                        });
+                }
+            }
+
+            // Tampilkan wishes
+            function displayWishes() {
+                console.log("Menampilkan wishes dengan filter:", currentFilter);
+                const container = document.getElementById('wishlistItems');
+                container.innerHTML = '';
+                
+                let filteredWishes = wishes;
+                if (currentFilter === 'pending') {
+                    filteredWishes = wishes.filter(w => !w.completed);
+                } else if (currentFilter === 'completed') {
+                    filteredWishes = wishes.filter(w => w.completed);
+                }
+                
+                console.log("Jumlah wishes setelah filter:", filteredWishes.length);
+                
+                if (filteredWishes.length === 0) {
+                    container.innerHTML = '<p>Tidak ada keinginan yang ditemukan.</p>';
+                    return;
+                }
+                
+                filteredWishes.forEach(wish => {
+                    const wishElement = document.createElement('div');
+                    wishElement.className = `wishlist-item ${wish.owner} ${wish.completed ? 'completed' : ''}`;
+                    
+                    const ownerName = wish.owner === 'ara' ? 'Ara' : 'Ido';
+                    const ownerBadge = `<span class="badge ${wish.owner}">${ownerName}</span>`;
+                    
+                    let completedInfo = wish.completed && wish.completedBy ? 
+                        `<p><em>Ditandai selesai oleh ${wish.completedBy === 'ara' ? 'Ara' : 'Ido'} pada ${formatDate(wish.completedDate)}</em></p>` : '';
+                    
+                    wishElement.innerHTML = `
+                        <h3>${ownerBadge} ${wish.text}</h3>
+                        ${wish.description ? `<p>${wish.description}</p>` : ''}
+                        <p><small>Dibuat pada ${formatDate(wish.date)}</small></p>
+                        ${completedInfo}
+                        <div class="item-actions">
+                            <button onclick="toggleWish('${wish.id}', '${wish.owner}')" class="btn ${wish.owner === 'ara' ? 'btn-ara' : 'btn-ido'}">
+                                ${wish.completed ? 'Batalkan' : 'Selesaikan'}
+                            </button>
+                            <button onclick="deleteWish('${wish.id}', '${wish.owner}')" class="btn ${wish.owner === 'ara' ? 'btn-ara' : 'btn-ido'}">Hapus</button>
+                        </div>
+                    `;
+                    container.appendChild(wishElement);
+                });
+            }
+
+            // Format tanggal
+            function formatDate(dateString) {
+                if (!dateString) return '';
+                
+                const date = new Date(dateString);
+                const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+                return date.toLocaleDateString('id-ID', options);
+            }
+
+            // Load wishes saat halaman dimuat
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log("DOM fully loaded, loading wishes");
+                loadWishes();
+            });
+            
+        } catch (initError) {
+            console.error("Error initializing Firebase:", initError);
+            alert("Terjadi kesalahan saat inisialisasi Firebase: " + initError.message);
+        }
+    </script>
+</body>
+</html>
