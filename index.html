@@ -11,15 +11,17 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
         :root {
-            --primary-color: #FF99C8;
-            --text-color: #695C5C;
-            --background-color: #FFF5F7;
+            --primary-color: #333333;
+            --secondary-color: #666666;
+            --text-color: #333333;
+            --background-color: #F5F5F5;
             --card-color: #ffffff;
-            --border-color: #FFB3C6;
-            --secondary-color: #FCB6D0;
-            --ara-color: #FF6B98;
-            --ido-color: #5D9CEC;
-            --success-color: #4CAF50;
+            --border-color: #E0E0E0;
+            --ara-color: #4D4D4D;
+            --ido-color: #717171;
+            --success-color: #5A5A5A;
+            --accent-light: #EEEEEE;
+            --accent-dark: #222222;
         }
 
         * {
@@ -44,27 +46,31 @@
         .header {
             text-align: center;
             margin-bottom: 2rem;
-            padding: 1rem;
-            background: linear-gradient(135deg, #FFE5EC, #FFB3C6);
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #EFEFEF, #DEDEDE);
             border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
         }
 
         .header h1 {
-            color: #FF4F81;
+            color: var(--primary-color);
             font-size: 2.5rem;
             margin-bottom: 0.5rem;
+            letter-spacing: 1px;
         }
 
         .header p {
-            color: #FF6B98;
+            color: var(--secondary-color);
             font-size: 1.2rem;
         }
 
         .header h1:before,
         .header h1:after {
-            content: '♥';
-            color: #FF4F81;
+            content: '♦';
+            color: var(--secondary-color);
             margin: 0 10px;
+            font-size: 1.8rem;
+            vertical-align: middle;
         }
 
         .card {
@@ -72,7 +78,7 @@
             border-radius: 15px;
             padding: 1.5rem;
             margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px rgba(255, 153, 200, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         }
 
         .btn {
@@ -101,6 +107,8 @@
 
         .btn:hover {
             opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .tabs {
@@ -113,10 +121,11 @@
             flex: 1;
             padding: 0.75rem;
             text-align: center;
-            background-color: #FFE5EC;
+            background-color: var(--accent-light);
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.2s;
+            font-weight: 500;
         }
 
         .tab.active {
@@ -131,14 +140,26 @@
             border-radius: 10px;
             margin-bottom: 1rem;
             font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
         }
 
         .wishlist-item {
-            background: #FFF5F7;
+            background: var(--accent-light);
             border-radius: 10px;
             padding: 1rem;
             margin-bottom: 1rem;
             border: 1px solid var(--border-color);
+            transition: transform 0.2s;
+        }
+
+        .wishlist-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.07);
         }
 
         .wishlist-item.ara {
@@ -151,21 +172,23 @@
 
         .wishlist-item.completed {
             border-left: 4px solid var(--success-color);
+            background-color: #F8F8F8;
         }
 
         .wishlist-item h3 {
             margin-bottom: 0.5rem;
-            color: #FF4F81;
+            color: var(--accent-dark);
         }
 
         .wishlist-item p {
             margin-bottom: 0.5rem;
-            color: #695C5C;
+            color: var(--text-color);
         }
 
         .item-actions {
             display: flex;
             gap: 0.5rem;
+            margin-top: 0.5rem;
         }
 
         .item-actions button {
@@ -176,11 +199,15 @@
         .loader {
             text-align: center;
             padding: 1rem;
+            color: var(--secondary-color);
         }
 
         .user-selector {
             display: flex;
             margin-bottom: 1.5rem;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .user-btn {
@@ -399,14 +426,13 @@
                                     wishes.push(wish);
                                 });
                             }
-                            resolve();
-                        });
+                            resolve();});
                     }),
                     // Get Ido's wishes
                     new Promise((resolve) => {
                         idoWishesRef.once('value', (snapshot) => {
                             if (snapshot.exists()) {
-                                snapshotsnapshot.forEach((childSnapshot) => {
+                                snapshot.forEach((childSnapshot) => {
                                     const wish = childSnapshot.val();
                                     wish.id = childSnapshot.key;
                                     wish.owner = 'ido';
